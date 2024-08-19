@@ -79,7 +79,7 @@ class Email
     }
 
     /**
-     * Send a mass email to all users
+     * Send a mass email to all users, one by one
      */
     public function massEmail(EmailTarget $target, ?int $targetId, string $subject, string $body, Address $replyTo): int
     {
@@ -95,17 +95,28 @@ class Email
 
         $sender = sprintf("\n\nEmail sent by %s. You can reply directly to this email.\n", $replyTo->getName());
 
-        $message = (new Memail())
-        ->subject($subject)
-        ->from($from)
-        ->to($replyTo)
-        // Set recipients in BCC to protect email addresses
-        ->bcc(...$emails)
-        ->replyTo($replyTo)
-        ->text($body . $sender . $this->footer);
+        // prepare full body of the email
+        $fullBody = $body . $sender . $this->footer;
 
-        $this->send($message);
-        return count($emails);
+        // counter for successful emails sent
+        $emailsSent = 0;
+
+        // send emails one by one in the loop
+        // bcc is not needed anymore since it is sent to single user each time
+        foreach ($emails as $email) {
+            $message = (new Memail())
+            ->subject($subject)
+            ->from($from)
+            ->to($email)
+            ->replyTo($replyTo)
+            ->text($fullBody);
+
+            // send the email and increment the counter if successful
+            $this->send($message);
+            $emailsSent++;
+        }
+
+        return $emailsSent;
     }
 
     /**

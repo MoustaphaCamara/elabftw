@@ -58,17 +58,59 @@ class EmailTest extends \PHPUnit\Framework\TestCase
 
     public function testMassEmail(): void
     {
+        // count the actual number of items in db (for users & admins), so that the test can be automated
+        $activeUsersEmails = $this->Email->getAllEmailAddresses(EmailTarget::ActiveUsers);
+        $adminsEmails = $this->Email->getAllEmailAddresses(EmailTarget::Admins);
+        $sysAdminsEmails = $this->Email->getAllEmailAddresses(EmailTarget::Sysadmins);
+
+        // count the admins for current team
+        $TeamsHelper = new TeamsHelper(1);
+        $adminsIds = $TeamsHelper->getAllAdminsUserid();
+        // we have to remove the current user which counts as one admin too many
+        $allAdminsCountWithoutCurrentSender = count($adminsIds) - 1;
+
         $replyTo = new Address('sender@example.com', 'Sergent Garcia');
         // Note that non-validated users are not active users
-        $this->assertEquals(19, $this->Email->massEmail(EmailTarget::ActiveUsers, null, '', 'yep', $replyTo));
+        $this->assertEquals(count($activeUsersEmails), $this->Email->massEmail(EmailTarget::ActiveUsers, null, '', 'yep', $replyTo));
         $this->assertEquals(10, $this->Email->massEmail(EmailTarget::Team, 1, 'Important message', 'yep', $replyTo));
         $this->assertEquals(0, $this->Email->massEmail(EmailTarget::TeamGroup, 1, 'Important message', 'yep', $replyTo));
-        $this->assertEquals(6, $this->Email->massEmail(EmailTarget::Admins, null, 'Important message to admins', 'yep', $replyTo));
-        $this->assertEquals(1, $this->Email->massEmail(EmailTarget::Sysadmins, null, 'Important message to sysadmins', 'yep', $replyTo));
+        $this->assertEquals(count($adminsEmails), $this->Email->massEmail(EmailTarget::Admins, null, 'Important message to admins', 'yep', $replyTo));
+        $this->assertEquals(count($sysAdminsEmails), $this->Email->massEmail(EmailTarget::Sysadmins, null, 'Important message to sysadmins', 'yep', $replyTo));
         $this->assertEquals(1, $this->Email->massEmail(EmailTarget::BookableItem, 1, 'Oops', 'My cells died', $replyTo));
-        $this->assertEquals(1, $this->Email->massEmail(EmailTarget::AdminsOfTeam, 1, 'Important message to admins of a team', 'yep', $replyTo));
+        $this->assertEquals($allAdminsCountWithoutCurrentSender, $this->Email->massEmail(EmailTarget::AdminsOfTeam, 1, 'Important message to admins of a team', 'yep', $replyTo));
     }
 
+    public function testSingleEmail(): void
+    {
+        $replyTo = new Address('sender@example.com', 'Sergent Garcia');
+
+        $this->assertTrue($this->Email->singleEmail(
+            email: 'e@l.fr',
+            subject:'ab',
+            body: 'for the win',
+            replyTo: $replyTo
+        ));
+    }
+
+    /**
+     * given the single email method,
+     * when no email is entered
+     * it should throw the improper action exception
+     * @throws ImproperActionException
+     */
+    public function testNoEmailFilledShouldThrowException(): void
+    {
+        $this->expectException(ImproperActionException::class);
+
+        $replyTo = new Address('sender@example.com', 'Sergent Garcia');
+
+        $this->Email->singleEmail(
+            email: '',
+            subject: 'ab',
+            body: 'for the win',
+            replyTo: $replyTo
+        );
+    }
     public function testSendEmail(): void
     {
         $this->assertTrue($this->Email->sendEmail(new Address('a@a.fr', 'blah'), 's', 'b'));
