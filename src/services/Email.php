@@ -109,6 +109,32 @@ class Email
     }
 
     /**
+     * Send an email to a single user
+     * @throws ImproperActionException
+     */
+    public function singleEmail(string $email, string $subject, string $body, Address $replyTo): bool
+    {
+        if (empty($subject)) {
+            $subject = '[eLabFTW] No subject';
+        }
+
+        if (!$email) {
+            throw new ImproperActionException(_('Please fill in an email address to proceed.'));
+        }
+
+        $sender = sprintf("\n\nEmail sent by %s. You can reply directly to this email.\n", $replyTo->getName());
+
+        $message = (new Memail())
+            ->subject($subject)
+            ->from($this->from)
+            ->to(new Address($email))
+            ->replyTo($replyTo)
+            ->text($body . $sender . $this->footer);
+
+        return $this->send($message);
+    }
+
+    /**
      * @param null|(\Symfony\Component\Mime\Address|string)[] $cc
      */
     public function sendEmail(

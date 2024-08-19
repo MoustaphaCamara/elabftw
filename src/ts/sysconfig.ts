@@ -203,6 +203,22 @@ document.addEventListener('DOMContentLoaded', () => {
       AjaxC.postForm(
         'app/controllers/SysconfigAjaxController.php',
         { massEmail: '1', subject: subject, body: body, target: targetRadio.value }).then(resp => handleEmailResponse(resp, button));
+    // SINGLE EMAIL
+    } else if (el.matches('[data-action="send-single-email"]')){
+        const button = (el as HTMLButtonElement);
+        button.disabled = true;
+        button.innerText = 'Sending…';
+        const email = (document.getElementById('singleEmail') as HTMLInputElement).value;
+        const subject = (document.getElementById('singleSubject') as HTMLInputElement).value;
+        const body = (document.getElementById('singleBody') as HTMLInputElement).value;
+        AjaxC.postForm(
+            'app/controllers/SysconfigAjaxController.php',
+            {
+                singleEmail: '1',
+                email: email,
+                subject: subject,
+                body: body,
+            }).then(resp => handleEmailResponse(resp, button));
     } else if (el.matches('[data-action="destroy-idp"]')) {
       event.preventDefault();
       if (confirm(i18next.t('generic-delete-warning'))) {
