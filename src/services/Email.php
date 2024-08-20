@@ -125,12 +125,12 @@ class Email
      */
     public function singleEmail(string $email, string $subject, string $body, Address $replyTo): bool
     {
-        if (empty($subject)) {
-            $subject = '[eLabFTW] No subject';
-        }
-
         if (!$email) {
             throw new ImproperActionException(_('Please fill in an email address to proceed.'));
+        }
+
+        if (empty($subject)) {
+            $subject = '[eLabFTW] No subject';
         }
 
         $sender = sprintf("\n\nEmail sent by %s. You can reply directly to this email.\n", $replyTo->getName());

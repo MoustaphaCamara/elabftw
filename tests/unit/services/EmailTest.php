@@ -80,6 +80,13 @@ class EmailTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($allAdminsCountWithoutCurrentSender, $this->Email->massEmail(EmailTarget::AdminsOfTeam, 1, 'Important message to admins of a team', 'yep', $replyTo));
     }
 
+    /**
+     * given a single email address,
+     * when the information is filled,
+     * then the email is successfully sent
+     * @return void
+     * @throws ImproperActionException
+     */
     public function testSingleEmail(): void
     {
         $replyTo = new Address('sender@example.com', 'Sergent Garcia');
