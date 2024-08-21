@@ -124,6 +124,8 @@
     </div>
     <hr>
 
+    {% include 'binary-setting.html' with {'label': 'Allow users to change their first name, last name, or email address'|trans, 'slug': 'allow_users_change_identity', 'help': 'When disabled, only a Sysadmin will be allowed to modify these parameters.'} %}
+
   </div>
 
   <h3 class='mb-3 p-2 pl-3 section-title'>{{ 'Registration and authentication configuration'|trans }}</h3>
@@ -517,7 +519,18 @@
 
 {# TAB 8 UPLOADS #}
 <div data-tabcontent='8' hidden>
-  <h3 class='p-2 pl-3 section-title'>{{ 'Uploaded files configuration'|trans }}</h3>
+  <h3 class='p-2 pl-3 section-title'>{{ 'Information'|trans }}</h3>
+  <div class='pl-3 mt-2 mb-5'>
+    {% if uploadsStats.count_null_hash > 0 %}
+      {{ 'Warning: %d files are missing a hash value. Fix it with %sbin/console uploads:check%s command.'|format(uploadsStats.count_null_hash, '<code>', '</code>')|msg('warning', false) }}
+    {% endif %}
+    {% if uploadsStats.count_null_filesize > 0 %}
+      {{ 'Warning: %d files are missing a filesize value. Fix it with %sbin/console uploads:check%s command.'|format(uploadsStats.count_null_filesize, '<code>', '</code>')|msg('warning', false) }}
+    {% endif %}
+    {{ 'This instance has %d files uploaded using %s of disk space.'|trans|format(uploadsStats.count_all, uploadsStats.filesize_all|formatBytes) }}
+  </div>
+
+  <h3 class='p-2 pl-3 section-title'>{{ 'Configuration'|trans }}</h3>
 
   <div class='pl-3 mt-2 mb-5'>
 
