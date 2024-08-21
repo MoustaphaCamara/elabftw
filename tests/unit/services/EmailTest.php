@@ -34,6 +34,8 @@ class EmailTest extends \PHPUnit\Framework\TestCase
         $this->Logger->pushHandler(new NullHandler());
         $MockMailer = $this->createMock(MailerInterface::class);
         $this->Email = new Email($MockMailer, $this->Logger, 'toto@yopmail.com');
+        $Config = Config::getConfig();
+        $Config->patch(Action::Update, array('mass_email_in_sequences' => '1'));
     }
 
     public function testTestemailSend(): void
@@ -81,9 +83,6 @@ class EmailTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testSendMassEmail():void {
-        $Config = Config::getConfig();
-        $Config->patch(Action::Update, array('mass_email_in_sequences' => '1'));
-
         $activeUsersEmails = $this->Email->getAllEmailAddresses(EmailTarget::ActiveUsers);
 
         $this->assertEquals(
