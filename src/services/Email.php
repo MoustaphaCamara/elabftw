@@ -79,9 +79,39 @@ class Email
     }
 
     /**
-     * Send a mass email to all users, one by one
+     * Send a mass email to all users in one shot
      */
     public function massEmail(EmailTarget $target, ?int $targetId, string $subject, string $body, Address $replyTo): int
+    {
+        if (empty($subject)) {
+            $subject = '[eLabFTW] No subject';
+        }
+
+        // set from
+        $from = $this->from;
+
+        // get all email addresses
+        $emails = self::getAllEmailAddresses($target, $targetId);
+
+        $sender = sprintf("\n\nEmail sent by %s. You can reply directly to this email.\n", $replyTo->getName());
+
+        $message = (new Memail())
+            ->subject($subject)
+            ->from($from)
+            ->to($replyTo)
+            // Set recipients in BCC to protect email addresses
+            ->bcc(...$emails)
+            ->replyTo($replyTo)
+            ->text($body . $sender . $this->footer);
+
+        $this->send($message);
+        return count($emails);
+    }
+
+    /**
+     * Send emails to all users one by one
+     */
+    public function sequentialMassEmail(EmailTarget $target, ?int $targetId, string $subject, string $body, Address $replyTo): int
     {
         if (empty($subject)) {
             $subject = '[eLabFTW] No subject';
@@ -117,32 +147,6 @@ class Email
         }
 
         return $emailsSent;
-    }
-
-    /**
-     * Send an email to a single user
-     * @throws ImproperActionException
-     */
-    public function singleEmail(string $email, string $subject, string $body, Address $replyTo): bool
-    {
-        if (!$email) {
-            throw new ImproperActionException(_('Please fill in an email address to proceed.'));
-        }
-
-        if (empty($subject)) {
-            $subject = '[eLabFTW] No subject';
-        }
-
-        $sender = sprintf("\n\nEmail sent by %s. You can reply directly to this email.\n", $replyTo->getName());
-
-        $message = (new Memail())
-            ->subject($subject)
-            ->from($this->from)
-            ->to(new Address($email))
-            ->replyTo($replyTo)
-            ->text($body . $sender . $this->footer);
-
-        return $this->send($message);
     }
 
     /**

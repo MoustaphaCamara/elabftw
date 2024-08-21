@@ -67,17 +67,6 @@ try {
         );
     }
 
-    // SEND SINGLE EMAIL
-    if ($App->Request->request->has('singleEmail')) {
-        $replyTo = new Address($App->Users->userData['email'], $App->Users->userData['fullname']);
-        $Email->singleEmail(
-            $App->Request->request->getString('email'),
-            $App->Request->request->getString('subject'),
-            $App->Request->request->getString('body'),
-            $replyTo
-        );
-    }
-
     // DESTROY IDP
     if ($App->Request->request->has('idpsDestroy')) {
         $Idps = new Idps($App->Users, $App->Request->request->getInt('id'));

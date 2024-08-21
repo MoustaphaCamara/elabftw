@@ -80,44 +80,6 @@ class EmailTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($allAdminsCountWithoutCurrentSender, $this->Email->massEmail(EmailTarget::AdminsOfTeam, 1, 'Important message to admins of a team', 'yep', $replyTo));
     }
 
-    /**
-     * given a single email address,
-     * when the information is filled,
-     * then the email is successfully sent
-     * @return void
-     * @throws ImproperActionException
-     */
-    public function testSingleEmail(): void
-    {
-        $replyTo = new Address('sender@example.com', 'Sergent Garcia');
-
-        $this->assertTrue($this->Email->singleEmail(
-            email: 'e@l.fr',
-            subject:'ab',
-            body: 'for the win',
-            replyTo: $replyTo
-        ));
-    }
-
-    /**
-     * given the single email method,
-     * when no email is entered
-     * it should throw the improper action exception
-     * @throws ImproperActionException
-     */
-    public function testNoEmailFilledShouldThrowException(): void
-    {
-        $this->expectException(ImproperActionException::class);
-
-        $replyTo = new Address('sender@example.com', 'Sergent Garcia');
-
-        $this->Email->singleEmail(
-            email: '',
-            subject: 'ab',
-            body: 'for the win',
-            replyTo: $replyTo
-        );
-    }
     public function testSendEmail(): void
     {
         $this->assertTrue($this->Email->sendEmail(new Address('a@a.fr', 'blah'), 's', 'b'));
