@@ -79,7 +79,20 @@ class Email
     }
 
     /**
+     * @throws ImproperActionException
+     */
+    public function sendMassEmail(EmailTarget $target, ?int $targetId, string $subject, string $body, Address $replyTo): int
+    {
+        $Config = Config::getConfig();
+        if ($Config->configArr['mass_email_in_sequences'] === "1") {
+            return self::sequentialMassEmail($target, $targetId, $subject, $body, $replyTo);
+        }
+        return self::massEmail($target, $targetId, $subject, $body, $replyTo);
+    }
+
+    /**
      * Send a mass email to all users in one shot
+     * @throws ImproperActionException
      */
     public function massEmail(EmailTarget $target, ?int $targetId, string $subject, string $body, Address $replyTo): int
     {
@@ -110,6 +123,7 @@ class Email
 
     /**
      * Send emails to all users one by one
+     * @throws ImproperActionException
      */
     public function sequentialMassEmail(EmailTarget $target, ?int $targetId, string $subject, string $body, Address $replyTo): int
     {

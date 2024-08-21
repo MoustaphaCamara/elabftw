@@ -58,7 +58,7 @@ try {
     // SEND MASS EMAIL
     if ($App->Request->request->has('massEmail')) {
         $replyTo = new Address($App->Users->userData['email'], $App->Users->userData['fullname']);
-        $Email->massEmail(
+        $Email->sendMassEmail(
             EmailTarget::from($App->Request->request->getString('target')),
             null,
             $App->Request->request->getString('subject'),

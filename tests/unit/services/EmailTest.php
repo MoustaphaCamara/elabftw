@@ -11,8 +11,10 @@ declare(strict_types=1);
 
 namespace Elabftw\Services;
 
+use Elabftw\Enums\Action;
 use Elabftw\Enums\EmailTarget;
 use Elabftw\Exceptions\ImproperActionException;
+use Elabftw\Models\Config;
 use Monolog\Handler\NullHandler;
 use Monolog\Logger;
 use Symfony\Component\Mailer\Exception\TransportException;
@@ -63,21 +65,37 @@ class EmailTest extends \PHPUnit\Framework\TestCase
         $adminsEmails = $this->Email->getAllEmailAddresses(EmailTarget::Admins);
         $sysAdminsEmails = $this->Email->getAllEmailAddresses(EmailTarget::Sysadmins);
 
-        // count the admins for current team
+        // count admins of teams
         $TeamsHelper = new TeamsHelper(1);
         $adminsIds = $TeamsHelper->getAllAdminsUserid();
-        // we have to remove the current user which counts as one admin too many
-        $allAdminsCountWithoutCurrentSender = count($adminsIds) - 1;
 
         $replyTo = new Address('sender@example.com', 'Sergent Garcia');
         // Note that non-validated users are not active users
         $this->assertEquals(count($activeUsersEmails), $this->Email->massEmail(EmailTarget::ActiveUsers, null, '', 'yep', $replyTo));
-        $this->assertEquals(10, $this->Email->massEmail(EmailTarget::Team, 1, 'Important message', 'yep', $replyTo));
+        $this->assertEquals(5, $this->Email->massEmail(EmailTarget::Team, 1, 'Important message', 'yep', $replyTo));
         $this->assertEquals(0, $this->Email->massEmail(EmailTarget::TeamGroup, 1, 'Important message', 'yep', $replyTo));
         $this->assertEquals(count($adminsEmails), $this->Email->massEmail(EmailTarget::Admins, null, 'Important message to admins', 'yep', $replyTo));
         $this->assertEquals(count($sysAdminsEmails), $this->Email->massEmail(EmailTarget::Sysadmins, null, 'Important message to sysadmins', 'yep', $replyTo));
-        $this->assertEquals(1, $this->Email->massEmail(EmailTarget::BookableItem, 1, 'Oops', 'My cells died', $replyTo));
-        $this->assertEquals($allAdminsCountWithoutCurrentSender, $this->Email->massEmail(EmailTarget::AdminsOfTeam, 1, 'Important message to admins of a team', 'yep', $replyTo));
+        $this->assertEquals(0, $this->Email->massEmail(EmailTarget::BookableItem, 1, 'Oops', 'My cells died', $replyTo));
+        $this->assertEquals(count($adminsIds), $this->Email->massEmail(EmailTarget::AdminsOfTeam, 1, 'Important message to admins of a team', 'yep', $replyTo));
+    }
+
+    public function testSendMassEmail():void {
+        $Config = Config::getConfig();
+        $Config->patch(Action::Update, array('mass_email_in_sequences' => '1'));
+
+        $activeUsersEmails = $this->Email->getAllEmailAddresses(EmailTarget::ActiveUsers);
+
+        $this->assertEquals(
+            count($activeUsersEmails),
+            $this->Email->sendMassEmail(
+                target: EmailTarget::ActiveUsers,
+                targetId: null,
+                subject: 'elab unit testing',
+                body: 'for the win',
+                replyTo: new Address('a@a.fr','no name')
+            )
+        );
     }
 
     public function testSendEmail(): void
@@ -88,5 +106,11 @@ class EmailTest extends \PHPUnit\Framework\TestCase
     public function testNotifySysadminsTsBalance(): void
     {
         $this->assertTrue($this->Email->notifySysadminsTsBalance(12));
+    }
+
+    protected function tearDown(): void
+    {
+        $Config = Config::getConfig();
+        $Config->patch(Action::Update, array('mass_email_in_sequences' => '0'));
     }
 }
